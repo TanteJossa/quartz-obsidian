@@ -1,0 +1,64 @@
+.page-intro {
+  margin: 1rem 0;
+
+  button.intro-header {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: var(--darkgray);
+    font-family: var(--headerFont);
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--darkgray);
+    }
+
+    svg {
+      transition: transform 0.3s ease;
+      margin-left: 0.5rem;
+    }
+
+    &.collapsed {
+      svg {
+        transform: rotate(-90deg);
+      }
+    }
+  }
+
+  .intro-content {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-left: 2px solid var(--lightgray);
+    list-style: none;
+    overflow: hidden;
+    max-height: 1000px;
+    transition:
+      max-height 0.3s ease,
+      padding 0.3s ease,
+      opacity 0.3s ease;
+
+    &.collapsed {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: 0;
+      opacity: 0;
+    }
+
+    li {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+
+      strong {
+        color: var(--gray);
+        margin-right: 0.5rem;
+        text-transform: capitalize;
+      }
+    }
+  }
+}
