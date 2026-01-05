@@ -1,11 +1,12 @@
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "../types"
 import path from "path"
+import { FilePath, slugifyFilePath } from "../../util/path"
 
 const PDFContent: QuartzComponent = ({ fileData }: QuartzComponentProps) => {
   const title = fileData.frontmatter?.title ?? path.basename(fileData.filePath ?? "")
   // Calculate relative path to the PDF file
   // The HTML file and the PDF file are siblings in the output directory
-  const pdfPath = `./${path.basename(fileData.filePath ?? "")}`
+  const pdfPath = `./${path.basename(slugifyFilePath(fileData.filePath as FilePath))}`
 
   return (
     <article class="popover-hint">
