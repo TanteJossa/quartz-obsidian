@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": "public",
+    "site": "obsidian-vault-ee-site",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
+    
+  }
+}

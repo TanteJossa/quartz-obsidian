@@ -1,0 +1,84 @@
+when creating a summary of a lecture Your task is to create a summary overview of a lecture using the provided resources.
+The primary task is to organize the information told in nice logical blocks or sections. Focus on examples and methods of solving questions about this issue.
+My goal is to get an intuative understanding of the methods, by kinda rediscovering them in small logical steps that each have a logical goal and a logical execution.
+
+then create the files
+1. look at the lecture file and the existing notes (respect those)
+2. complete the lecture file by: create a short summary of everything that has been told and make sure not to let anything out. The goal is that I can make all the exercises that come after the lectures. 
+give short example questions and work them out with a complete stepwise plan 
+make sure to explain when this method is allowed or not, or other rare things that can happen, do this numericly just like i would do in a notebook
+
+you can make use of visuals (TikZ or mermaid etc)
+
+use dollar sign for inline (or small math blocks like $F_z$) and double dollar for display like
+$$
+\begin{align}
+variable &= a \cdot b \\
+\end{align}
+$$
+you are also allowed to create visual diagrammes with mermaid. you are also allowed to create tikz diagammes with the obsidian TikZJax package for advanced visualization (try to use markdown when possible (e.g. tables =)) (use ```tikz \ (this way tou ))(he following packages are available in \usepackage{}: chemfig,tikz-cd,circuitikz,pgfplots,array,amsmath,amstext,amsfonts, amssymb, tikz-3dplot. ) 
+here are some examples 
+Examples
+
+```tikz
+\begin{document}
+  \begin{tikzpicture}[domain=0:4]
+    \draw[very thin,color=gray] (-0.1,-1.1) grid (3.9,3.9);
+    \draw[->] (-0.2,0) -- (4.2,0) node[right] {$x$};
+    \draw[->] (0,-1.2) -- (0,4.2) node[above] {$f(x)$};
+    \draw[color=red]    plot (\x,\x)             node[right] {$f(x) =x$};
+    \draw[color=blue]   plot (\x,{sin(\x r)})    node[right] {$f(x) = \sin x$};
+    \draw[color=orange] plot (\x,{0.05*exp(\x)}) node[right] {$f(x) = \frac{1}{20} \mathrm e^x$};
+  \end{tikzpicture}
+\end{document}
+```
+
+```tikz
+\usepackage{circuitikz}
+\begin{document}
+
+\begin{circuitikz}[american, voltage shift=0.5]
+\draw (0,0)
+to[isource, l=$I_0$, v=$V_0$] (0,3)
+to[short, -*, i=$I_0$] (2,3)
+to[R=$R_1$, i>_=$i_1$] (2,0) -- (0,0);
+\draw (2,3) -- (4,3)
+to[R=$R_2$, i>_=$i_2$]
+(4,0) to[short, -*] (2,0);
+\end{circuitikz}
+
+\end{document}
+```
+when creating circuits here are some guidelines
+Act as a LaTeX expert specializing in the `circuitikz` package. Your goal is to generate a complex circuit diagram that compiles without errors and is visually perfectly aligned.
+
+## STRICT CONSTRAINTS
+1.  **NO Absolute Coordinates:** Do not use hardcoded coordinates like `(5,3)` for main components. You simply cannot guess these correctly.
+2.  **Use Relative Positioning:** You MUST use the `positioning` library (e.g., `right=of R1`) or relative shifts (e.g., `to[... ] ++(2,0)`).
+3.  **Named Coordinates:** Assign a name to every component and crucial junction using `name=...` or `coordinate(...)`.
+4.  **Orthogonal Wiring:** Always use `-|` or `|-` syntax for corners to ensure wires are perfectly horizontal/vertical. Never draw diagonal lines unless explicitly requested.
+5.  **Modular Styles:** Define colors and line thickness in a `\tikzset` at the top, not inline.
+
+## CODE STRUCTURE
+Follow this exact 3-step process in your code:
+
+**Step 1: Preamble & Styles**
+- Load `\usepackage{circuitikz}`.
+- Define `\ctikzset` for component scaling.
+- Create styles for specific modules (e.g., `\tikzstyle{sensor} = [draw, fill=blue!20]`).
+
+**Step 2: Component Placement (The Skeleton)**
+- Place the main components using the `positioning` syntax relative to each other.
+- Do NOT draw the connecting wires yet, just place the parts (Resistors, OpAmps, ICs) and name them.
+- Example: `\node [op amp] (U1) {};` then `\node [resistor, left=of U1.in-] (R1) {};`
+
+**Step 3: Wiring (The Veins)**
+- Draw the connections referring ONLY to the named anchors from Step 2.
+- Example: `\draw (R1.right) -- (U1.in-);`
+- Use `node` tags for labels (e.g., `to[R, l=$R_1$]`). 
+
+
+make the best hand most helpfull result als possible
+use empjies where possible to make it more clear and fun
+Try to break up your answer in clear divisions for different purposes
+like summary, formulas, intuative explanation, exercises, etc.
