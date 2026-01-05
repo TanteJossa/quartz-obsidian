@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikZJax Standalone Renderer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #252525;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #output {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+        }
+        /* Fix for TikZJax SVG visibility */
+        #output svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .loader-container {
+            display: none;
+            margin-top: 1rem;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>TikZJax Renderer</h1>
+        <textarea id="tikz-input" placeholder="Enter TikZ code here...">\begin{document}
+  \begin{tikzpicture}[domain=0:4]
+    \draw[very thin,color=gray] (-0.1,-1.1) grid (3.9,3.9);
+    \draw[->] (-0.2,0) -- (4.2,0) node[right] {$x$};
+    \draw[->] (0,-1.2) -- (0,4.2) node[above] {$f(x)$};
+    \draw[color=red]    plot (\x,\x)             node[right] {$f(x) =x$};
+    \draw[color=blue]   plot (\x,{sin(\x r)})    node[right] {$f(x) = \sin x$};
+    \draw[color=orange] plot (\x,{0.05*exp(\x)}) node[right] {$f(x) = \frac{1}{20} \mathrm e^x$};
+  \end{tikzpicture}
+\end{document}</textarea>
+        <button onclick="renderTikZ()">Render to SVG</button>
+        <div id="loader" class="loader-container">Rendering...</div>
+        <div id="output"></div>
+    </div>
+
+    <!-- Required Scripts -->
+    <link rel="stylesheet" href="styles.css">
+    <script src="svgo.browser.js" type="module"></script>
+    <script src="tikzjax-renderer.js"></script>
+
+    <script>
+        /**
+         * Standalone TikZJax Rendering Logic
+         */
+        
+        async function init() {
+            // Load dependencies from current directory
+            // Note: TikZJax MUST be loaded from a real URL (even localhost) for its worker to work.
+            // Using absolute paths helps it resolve the worker blob correctly.
+            const absPath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+            await TikZJaxRenderer.load(absPath);
+            console.log("TikZJax Renderer Initialized");
+        }
+
+        async function renderTikZ() {
+            const source = document.getElementById('tikz-input').value;
+            const outputEl = document.getElementById('output');
+            const loader = document.getElementById('loader');
+
+            loader.style.display = 'block';
+            outputEl.innerHTML = '';
+
+            try {
+                const svgCode = await TikZJaxRenderer.render(source, {
+                    optimize: true
+                });
+                outputEl.innerHTML = svgCode;
+            } catch (err) {
+                outputEl.innerHTML = `<div style="color: #ff4d4d; padding: 1rem; background: #2a0000; border-radius: 4px;">Error: ${err.message}</div>`;
+                console.error(err);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
