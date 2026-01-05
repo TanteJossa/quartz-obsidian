@@ -2,6 +2,7 @@
 .gitignore
 node_modules
 public
+firstore.js
 content
 prof
 tsconfig.tsbuildinfo
@@ -10,4 +11,3 @@ tsconfig.tsbuildinfo
 private/
 .replit
 replit.nix
-firstore.js
