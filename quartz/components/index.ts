@@ -25,6 +25,7 @@ import Flex from "./Flex"
 import ConditionalRender from "./ConditionalRender"
 
 import PageIntro from "./PageIntro"
+import PasswordProtection from "./PasswordProtection"
 
 export {
   ArticleTitle,
@@ -53,4 +54,5 @@ export {
   Flex,
   ConditionalRender,
   PageIntro,
+  PasswordProtection,
 }

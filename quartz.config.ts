@@ -74,7 +74,7 @@ const config: QuartzConfig = {
       Plugin.Latex({ renderEngine: "katex" }),
       Plugin.TikZJax(),
     ],
-    filters: [Plugin.RemoveDrafts()],
+    filters: [Plugin.RemoveDrafts(), Plugin.RemoveSiteFalse()],
     emitters: [
       Plugin.AliasRedirects(),
       Plugin.ComponentResources(),
