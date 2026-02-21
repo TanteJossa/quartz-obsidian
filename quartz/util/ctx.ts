@@ -13,7 +13,6 @@ export interface Argv {
   wsPort: number
   remoteDevHost?: string
   concurrency?: number
-  incremental?: boolean
 }
 
 export type BuildTimeTrieData = QuartzPluginData & {
