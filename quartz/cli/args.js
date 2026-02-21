@@ -105,4 +105,9 @@ export const BuildArgv = {
     number: true,
     describe: "how many threads to use to parse notes",
   },
+  incremental: {
+    boolean: true,
+    default: false,
+    describe: "perform an incremental build",
+  },
 }

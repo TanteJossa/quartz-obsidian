@@ -1,5 +1,6 @@
 import { render } from "preact-render-to-string"
 import { QuartzComponent, QuartzComponentProps } from "./types"
+import { encrypt } from "../util/encryption"
 import HeaderConstructor from "./Header"
 import BodyConstructor from "./Body"
 import { JSResourceToScriptElement, StaticResources } from "../util/resources"
@@ -212,13 +213,13 @@ function renderTranscludes(
   })
 }
 
-export function renderPage(
+export async function renderPage(
   cfg: GlobalConfiguration,
   slug: FullSlug,
   componentData: QuartzComponentProps,
   components: RenderComponents,
   pageResources: StaticResources,
-): string {
+): Promise<string> {
   // make a deep copy of the tree so we don't remove the transclusion references
   // for the file cached in contentMap in build.ts
   const root = clone(componentData.tree) as Root
@@ -257,6 +258,60 @@ export function renderPage(
     </div>
   )
 
+  const innerBody = (
+    <>
+      {LeftComponent}
+      <div class="center">
+        <div class="page-header">
+          <Header {...componentData}>
+            {header.map((HeaderComponent) => (
+              <HeaderComponent {...componentData} />
+            ))}
+          </Header>
+          <div class="popover-hint">
+            {beforeBody.map((BodyComponent) => (
+              <BodyComponent {...componentData} />
+            ))}
+          </div>
+        </div>
+        <Content {...componentData} />
+        <hr />
+        <div class="page-footer">
+          {afterBody.map((BodyComponent) => (
+            <BodyComponent {...componentData} />
+          ))}
+        </div>
+      </div>
+      {RightComponent}
+      <Footer {...componentData} />
+    </>
+  )
+
+  let bodyContent = innerBody
+
+  // Encrypt content if needed (site-wide password protection)
+  // Skip 404, tags, and index pages if desired, but user said site-wide.
+  // We skip 404 to ensure user sees error.
+  if (slug !== "404" && !slug.startsWith("tags/")) {
+    const innerBodyHtml = render(innerBody)
+    const encrypted = await encrypt(innerBodyHtml, "6969")
+    bodyContent = (
+      <>
+        <div
+          class="encrypted-page"
+          style="display: none"
+          data-ciphertext={encrypted.ciphertext}
+          data-iv={encrypted.iv}
+          data-salt={encrypted.salt}
+        ></div>
+        <div id="password-locked">
+          <h2>Locked Content</h2>
+          <p>This page is password protected.</p>
+        </div>
+      </>
+    )
+  }
+
   const lang = componentData.fileData.frontmatter?.lang ?? cfg.locale?.split("-")[0] ?? "en"
   const direction = i18n(cfg.locale).direction ?? "ltr"
   const doc = (
@@ -264,32 +319,7 @@ export function renderPage(
       <Head {...componentData} />
       <body data-slug={slug}>
         <div id="quartz-root" class="page">
-          <Body {...componentData}>
-            {LeftComponent}
-            <div class="center">
-              <div class="page-header">
-                <Header {...componentData}>
-                  {header.map((HeaderComponent) => (
-                    <HeaderComponent {...componentData} />
-                  ))}
-                </Header>
-                <div class="popover-hint">
-                  {beforeBody.map((BodyComponent) => (
-                    <BodyComponent {...componentData} />
-                  ))}
-                </div>
-              </div>
-              <Content {...componentData} />
-              <hr />
-              <div class="page-footer">
-                {afterBody.map((BodyComponent) => (
-                  <BodyComponent {...componentData} />
-                ))}
-              </div>
-            </div>
-            {RightComponent}
-            <Footer {...componentData} />
-          </Body>
+          <Body {...componentData}>{[bodyContent]}</Body>
         </div>
       </body>
       {pageResources.js

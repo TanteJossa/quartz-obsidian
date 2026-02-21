@@ -36,7 +36,7 @@ async function processContent(
     allFiles,
   }
 
-  const content = renderPage(cfg, slug, componentData, opts, externalResources)
+  const content = await renderPage(cfg, slug, componentData, opts, externalResources)
   return write({
     ctx,
     content,

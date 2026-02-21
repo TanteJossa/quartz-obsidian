@@ -5,8 +5,9 @@ import { QuartzLogger } from "../util/log"
 import { trace } from "../util/trace"
 import { BuildCtx } from "../util/ctx"
 import { styleText } from "util"
+import { ChangeEvent } from "../plugins/types"
 
-export async function emitContent(ctx: BuildCtx, content: ProcessedContent[]) {
+export async function emitContent(ctx: BuildCtx, content: ProcessedContent[], changeEvents?: ChangeEvent[]) {
   const { argv, cfg } = ctx
   const perf = new PerfTimer()
   const log = new QuartzLogger(ctx.argv.verbose)
@@ -18,7 +19,15 @@ export async function emitContent(ctx: BuildCtx, content: ProcessedContent[]) {
   await Promise.all(
     cfg.plugins.emitters.map(async (emitter) => {
       try {
-        const emitted = await emitter.emit(ctx, content, staticResources)
+        let emitted = null
+        if (changeEvents && emitter.partialEmit) {
+            emitted = await emitter.partialEmit(ctx, content, staticResources, changeEvents)
+        }
+        
+        if (emitted === null) {
+            emitted = await emitter.emit(ctx, content, staticResources)
+        }
+
         if (Symbol.asyncIterator in emitted) {
           // Async generator case
           for await (const file of emitted) {
