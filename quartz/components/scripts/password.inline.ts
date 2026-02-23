@@ -1,7 +1,37 @@
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import posthog from "posthog-js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIxeHOP2T39mp83RKPO_bmoBvsqCUhmtk",
+  authDomain: "joost-koch.firebaseapp.com",
+  projectId: "joost-koch",
+  storageBucket: "joost-koch.firebasestorage.app",
+  messagingSenderId: "234817865209",
+  appId: "1:234817865209:web:ef865f6b8888a45b202928",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+posthog.init('phc_O1BFFfiozBk5Rg86tAFZ28EANuE3Kh5MWA2KVmSabmk', {
+  api_host: 'https://eu.i.posthog.com',
+  person_profiles: 'always',
+  session_recording: {
+    strictMinimumDuration: true
+  }
+});
 
 const initPasswordProtection = async () => {
   const encryptedDiv = document.querySelector(".encrypted-page") as HTMLElement
-  if (!encryptedDiv) return
+  if (!encryptedDiv) {
+    // Already unlocked or page not protected. Still track page views if logged in.
+    if (auth.currentUser) {
+      posthog.capture('$pageview');
+    }
+    return;
+  }
 
   // Check if overlay already exists (prevent duplicates)
   if (document.getElementById("password-overlay")) return
@@ -54,33 +84,78 @@ const initPasswordProtection = async () => {
     }
   }
 
+  async function processUnlock(contentHtml: string, password: string) {
+    // Now wait for Firebase Auth state to be determined
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in. Reveal content.
+        posthog.identify(user.uid, { email: user.email });
+        
+        const bodyContainer = encryptedDiv.parentElement
+        if (bodyContainer) {
+          bodyContainer.innerHTML = contentHtml
+          // Re-evaluate scripts if necessary
+          const scripts = bodyContainer.querySelectorAll("script")
+          scripts.forEach((script) => {
+            const newScript = document.createElement("script")
+            Array.from(script.attributes).forEach((attr) =>
+              newScript.setAttribute(attr.name, attr.value),
+            )
+            newScript.appendChild(document.createTextNode(script.innerHTML))
+            script.parentNode?.replaceChild(newScript, script)
+          })
+        }
+        
+        const overlay = document.getElementById("password-overlay")
+        if (overlay) overlay.remove()
+        
+        const googleOverlay = document.getElementById("google-login-overlay")
+        if (googleOverlay) googleOverlay.remove()
+        
+        document.body.classList.remove("locked")
+        localStorage.setItem(storageKey, password)
+
+        // Trigger hydration of components
+        document.dispatchEvent(new CustomEvent("nav", { detail: { url: window.location.pathname } }))
+        posthog.capture('$pageview');
+
+      } else {
+        // Not logged in. Show Google Login UI instead of password UI.
+        const pOverlay = document.getElementById("password-overlay")
+        if (pOverlay) pOverlay.style.display = "none";
+
+        let gOverlay = document.getElementById("google-login-overlay");
+        if (!gOverlay) {
+          gOverlay = document.createElement("div")
+          gOverlay.id = "google-login-overlay"
+          gOverlay.innerHTML = `
+            <div class="password-container" style="text-align: center;">
+              <h2>Sign In</h2>
+              <p>Please sign in with Google to continue.</p>
+              <button id="google-login-btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4285F4; color: white; border: none; border-radius: 4px;">Sign in with Google</button>
+            </div>
+          `
+          document.body.appendChild(gOverlay)
+          
+          document.getElementById("google-login-btn")?.addEventListener("click", () => {
+            signInWithPopup(auth, provider).catch(error => {
+              console.error("Google Sign-in failed", error);
+              alert("Sign in failed. Please try again.");
+            });
+          });
+        }
+      }
+    });
+  }
+
   async function unlock(password: string) {
     try {
       const contentHtml = await decrypt(password)
-      const bodyContainer = encryptedDiv.parentElement
-      if (bodyContainer) {
-        bodyContainer.innerHTML = contentHtml
-        // Re-evaluate scripts if necessary
-        const scripts = bodyContainer.querySelectorAll("script")
-        scripts.forEach((script) => {
-          const newScript = document.createElement("script")
-          Array.from(script.attributes).forEach((attr) =>
-            newScript.setAttribute(attr.name, attr.value),
-          )
-          newScript.appendChild(document.createTextNode(script.innerHTML))
-          script.parentNode?.replaceChild(newScript, script)
-        })
-      }
-      
-      // Remove overlay
-      const overlay = document.getElementById("password-overlay")
-      if (overlay) overlay.remove()
-      document.body.classList.remove("locked")
-      
-      localStorage.setItem(storageKey, password)
+      // Hide password error if any
+      const errorMsg = document.getElementById("password-error")
+      if (errorMsg) errorMsg.style.display = "none"
 
-      // Trigger hydration of components (Explorer, Mermaid, etc.)
-      document.dispatchEvent(new CustomEvent("nav", { detail: { url: window.location.pathname } }))
+      await processUnlock(contentHtml, password);
     } catch {
       const errorMsg = document.getElementById("password-error")
       if (errorMsg) errorMsg.style.display = "block"
