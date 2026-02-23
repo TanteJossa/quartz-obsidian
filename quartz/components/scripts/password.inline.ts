@@ -3,20 +3,20 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from
 import posthog from "posthog-js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCIxeHOP2T39mp83RKPO_bmoBvsqCUhmtk",
-  authDomain: "joost-koch.firebaseapp.com",
-  projectId: "joost-koch",
-  storageBucket: "joost-koch.firebasestorage.app",
-  messagingSenderId: "234817865209",
-  appId: "1:234817865209:web:ef865f6b8888a45b202928",
+  apiKey: process.env.FIREBASE_API_KEY as string,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN as string,
+  projectId: process.env.FIREBASE_PROJECT_ID as string,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET as string,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID as string,
+  appId: process.env.FIREBASE_APP_ID as string,
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-posthog.init('phc_O1BFFfiozBk5Rg86tAFZ28EANuE3Kh5MWA2KVmSabmk', {
-  api_host: 'https://eu.i.posthog.com',
+posthog.init(process.env.POSTHOG_API_KEY as string, {
+  api_host: process.env.POSTHOG_API_HOST as string,
   person_profiles: 'always',
   session_recording: {
     strictMinimumDuration: true
@@ -119,10 +119,39 @@ const initPasswordProtection = async () => {
         document.dispatchEvent(new CustomEvent("nav", { detail: { url: window.location.pathname } }))
         posthog.capture('$pageview');
 
+        // Add Logout Button
+        let logoutBtn = document.getElementById("logout-btn");
+        if (!logoutBtn) {
+          logoutBtn = document.createElement("button");
+          logoutBtn.id = "logout-btn";
+          logoutBtn.innerText = "Log out";
+          logoutBtn.style.position = "fixed";
+          logoutBtn.style.bottom = "20px";
+          logoutBtn.style.right = "20px";
+          logoutBtn.style.padding = "10px 20px";
+          logoutBtn.style.zIndex = "10000";
+          logoutBtn.style.cursor = "pointer";
+          logoutBtn.style.backgroundColor = "#ff4d4f";
+          logoutBtn.style.color = "white";
+          logoutBtn.style.border = "none";
+          logoutBtn.style.borderRadius = "4px";
+          
+          logoutBtn.addEventListener("click", () => {
+            auth.signOut().then(() => {
+              window.location.reload();
+            });
+          });
+          document.body.appendChild(logoutBtn);
+        }
+
       } else {
         // Not logged in. Show Google Login UI instead of password UI.
         const pOverlay = document.getElementById("password-overlay")
         if (pOverlay) pOverlay.style.display = "none";
+
+        // Remove logout button if present
+        const logoutBtn = document.getElementById("logout-btn");
+        if (logoutBtn) logoutBtn.remove();
 
         let gOverlay = document.getElementById("google-login-overlay");
         if (!gOverlay) {
@@ -133,6 +162,25 @@ const initPasswordProtection = async () => {
               <h2>Sign In</h2>
               <p>Please sign in with Google to continue.</p>
               <button id="google-login-btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4285F4; color: white; border: none; border-radius: 4px;">Sign in with Google</button>
+              <p style="font-size: 12px; margin-top: 15px;">
+                Door in te loggen ga ik akkoord met de <a href="#" id="terms-link" style="text-decoration: underline; cursor: pointer;">algemene voorwaarden</a>
+              </p>
+            </div>
+            
+            <div id="terms-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
+              <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; position: relative; color: black;">
+                <h3 style="margin-top: 0;">Algemene Voorwaarden & Privacy (AVG)</h3>
+                <p>
+                  Door gebruik te maken van deze website en in te loggen, gaat u ermee akkoord dat wij bepaalde persoonsgegevens en gebruiksgegevens verzamelen. Om de kwaliteit en gebruikerservaring van de site te verbeteren, monitoren en analyseren wij de interacties en het gedrag van gebruikers op ons platform.
+                </p>
+                <p>
+                  Wij gaan zorgvuldig om met uw data. Conform de Algemene Verordening Gegevensbescherming (AVG) heeft u te allen tijde het recht om inzicht te krijgen in uw opgeslagen gegevens of een verzoek tot volledige verwijdering van uw data in te dienen.
+                </p>
+                <p>
+                  Voor vragen over uw privacy of een verzoek tot gegevensverwijdering, kunt u contact opnemen via: <a href="mailto:joostkkoch@gmail.com">joostkkoch@gmail.com</a>.
+                </p>
+                <button id="close-terms-btn" style="margin-top: 15px; padding: 8px 16px; cursor: pointer;">Sluiten</button>
+              </div>
             </div>
           `
           document.body.appendChild(gOverlay)
@@ -143,6 +191,28 @@ const initPasswordProtection = async () => {
               alert("Sign in failed. Please try again.");
             });
           });
+
+          // Terms modal logic
+          const termsLink = document.getElementById("terms-link");
+          const termsModal = document.getElementById("terms-modal");
+          const closeTermsBtn = document.getElementById("close-terms-btn");
+
+          if (termsLink && termsModal && closeTermsBtn) {
+            termsLink.addEventListener("click", (e) => {
+              e.preventDefault();
+              termsModal.style.display = "flex";
+            });
+
+            closeTermsBtn.addEventListener("click", () => {
+              termsModal.style.display = "none";
+            });
+
+            termsModal.addEventListener("click", (e) => {
+              if (e.target === termsModal) {
+                termsModal.style.display = "none";
+              }
+            });
+          }
         }
       }
     });

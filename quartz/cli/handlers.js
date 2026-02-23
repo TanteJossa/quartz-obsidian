@@ -238,6 +238,30 @@ export async function handleBuild(argv) {
   }
 
   console.log(`\n${styleText(["bgGreen", "black"], ` Quartz v${version} `)} \n`)
+  const envVars = {}
+  try {
+    const envPath = path.join(cwd, ".env")
+    if (fs.existsSync(envPath)) {
+      const envFile = fs.readFileSync(envPath, "utf8")
+      envFile.split("\n").forEach((line) => {
+        const match = line.match(/^\s*([\w_]+)\s*=\s*(.*)?\s*$/)
+        if (match) {
+          const key = match[1]
+          let value = match[2] || ""
+          if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+          ) {
+            value = value.slice(1, -1)
+          }
+          envVars[`process.env.${key}`] = JSON.stringify(value)
+        }
+      })
+    }
+  } catch (e) {
+    console.warn(styleText("yellow", "Failed to load .env file"))
+  }
+
   const ctx = await esbuild.context({
     entryPoints: [fp],
     outfile: cacheFile,
@@ -287,6 +311,7 @@ export async function handleBuild(argv) {
               minify: true,
               platform: "browser",
               format: "esm",
+              define: envVars,
             })
             const rawMod = transpiled.outputFiles[0].text
             return {

@@ -12,3 +12,4 @@ private/
 .replit
 replit.nix
 firstore.js
+.env
