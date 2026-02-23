@@ -170,13 +170,13 @@ const initPasswordProtection = async () => {
             <div id="terms-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
               <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; position: relative; color: black;">
                 <h3 style="margin-top: 0;">Algemene Voorwaarden & Privacy (AVG)</h3>
-                <p>
+                <p style="color: black;">
                   Door gebruik te maken van deze website en in te loggen, gaat u ermee akkoord dat wij bepaalde persoonsgegevens en gebruiksgegevens verzamelen. Om de kwaliteit en gebruikerservaring van de site te verbeteren, monitoren en analyseren wij de interacties en het gedrag van gebruikers op ons platform.
                 </p>
-                <p>
+                <p style="color: black;">
                   Wij gaan zorgvuldig om met uw data. Conform de Algemene Verordening Gegevensbescherming (AVG) heeft u te allen tijde het recht om inzicht te krijgen in uw opgeslagen gegevens of een verzoek tot volledige verwijdering van uw data in te dienen.
                 </p>
-                <p>
+                <p style="color: black;">
                   Voor vragen over uw privacy of een verzoek tot gegevensverwijdering, kunt u contact opnemen via: <a href="mailto:joostkkoch@gmail.com">joostkkoch@gmail.com</a>.
                 </p>
                 <button id="close-terms-btn" style="margin-top: 15px; padding: 8px 16px; cursor: pointer;">Sluiten</button>
@@ -200,16 +200,30 @@ const initPasswordProtection = async () => {
           if (termsLink && termsModal && closeTermsBtn) {
             termsLink.addEventListener("click", (e) => {
               e.preventDefault();
+              e.stopPropagation(); // Prevent bubbling up to document
               termsModal.style.display = "flex";
             });
 
-            closeTermsBtn.addEventListener("click", () => {
+            const closeTerms = (e?: Event) => {
+              if (e) e.stopPropagation();
               termsModal.style.display = "none";
-            });
+            };
 
+            closeTermsBtn.addEventListener("click", closeTerms);
+
+            // Prevent closing when clicking inside the modal content
+            const termsContent = termsModal.firstElementChild as HTMLElement;
+            if (termsContent) {
+                termsContent.addEventListener("click", (e) => {
+                    e.stopPropagation(); // Stop clicks inside from reaching the modal background
+                });
+            }
+
+            // Close when clicking the background (backdrop)
             termsModal.addEventListener("click", (e) => {
               if (e.target === termsModal) {
-                termsModal.style.display = "none";
+                 e.stopPropagation();
+                 closeTerms();
               }
             });
           }
