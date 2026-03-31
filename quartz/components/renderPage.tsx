@@ -292,9 +292,9 @@ export async function renderPage(
   // Encrypt content if needed (site-wide password protection)
   // Skip 404, tags, and index pages if desired, but user said site-wide.
   // We skip 404 to ensure user sees error.
-  if (slug !== "404" && !slug.startsWith("tags/")) {
+  if (cfg.enableEncryption && slug !== "404" && !slug.startsWith("tags/")) {
     const innerBodyHtml = render(innerBody)
-    const encrypted = await encrypt(innerBodyHtml, "6969")
+    const encrypted = await encrypt(innerBodyHtml, process.env.QUARTZ_PASSWORD ?? "6969")
     bodyContent = (
       <>
         <div

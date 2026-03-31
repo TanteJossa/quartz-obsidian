@@ -244,6 +244,7 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
                           height,
                           alt,
                         },
+                        wikilink: true,
                       },
                     }
                   } else if ([".mp4", ".webm", ".ogv", ".mov", ".mkv"].includes(ext)) {
@@ -410,6 +411,53 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
           }
         })
       }
+
+      // Handle standard markdown images with obsidian's image size syntax: ![alt|width](url)
+      plugins.push(() => {
+        return (tree: Root, _file) => {
+          visit(tree, "image", (node, index, parent) => {
+            if (node.alt) {
+              const match = wikilinkImageEmbedRegex.exec(node.alt)
+              if (match) {
+                const alt = match.groups?.alt ?? ""
+                const width = match.groups?.width ?? "auto"
+                const height = match.groups?.height ?? "auto"
+
+                node.alt = alt
+                node.data = node.data ?? {}
+                node.data.hProperties = node.data.hProperties ?? {}
+                
+                // Only set if not already present
+                if (!node.data.hProperties.width && width !== "auto") {
+                  node.data.hProperties.width = width
+                }
+                if (!node.data.hProperties.height && height !== "auto") {
+                  node.data.hProperties.height = height
+                }
+              }
+            }
+
+            // Obsidian resolves standard markdown image paths (that don't start with /)
+            // relative to the current file. transformLink treats them as root-relative.
+            // We'll convert relative paths to vault-absolute paths here.
+            const decodedUrl = decodeURI(node.url)
+            if (
+              !externalLinkRegex.test(decodedUrl) &&
+              !decodedUrl.startsWith("/") &&
+              !decodedUrl.startsWith("#") &&
+              !node.data?.wikilink
+            ) {
+              const baseDir = _file.data.slug?.split("/").slice(0, -1).join("/") ?? ""
+              // If the URL already contains parts of the baseDir, avoid duplication
+              if (baseDir && !decodedUrl.startsWith(baseDir)) {
+                node.url = `${baseDir}/${decodedUrl}`
+              } else {
+                node.url = decodedUrl
+              }
+            }
+          })
+        }
+      })
 
       if (opts.callouts) {
         plugins.push(() => {

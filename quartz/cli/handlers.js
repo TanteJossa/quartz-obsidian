@@ -255,6 +255,7 @@ export async function handleBuild(argv) {
             value = value.slice(1, -1)
           }
           envVars[`process.env.${key}`] = JSON.stringify(value)
+          process.env[key] = value
         }
       })
     }
