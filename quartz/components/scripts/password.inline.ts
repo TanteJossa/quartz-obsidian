@@ -88,13 +88,13 @@ function showGoogleLoginOverlay() {
         <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; position: relative; color: black;">
           <h3 style="margin-top: 0;">Algemene Voorwaarden & Privacy (AVG)</h3>
           <p style="color: black;">
-            Door gebruik te maken van deze website en in te loggen, gaat u ermee akkoord dat wij bepaalde persoonsgegevens en gebruiksgegevens verzamelen. Om de kwaliteit en gebruikerservaring van de site te verbeteren, monitoren en analyseren wij de interacties en het gedrag van gebruikers op ons platform.
+            Door gebruik te maken van deze website en in te loggen, gaat u ermee akkoord dat de beheerder bepaalde gebruiksgegevens verzamelt om de kwaliteit en gebruikerservaring van de site te verbeteren. Interacties op het platform worden op een zorgvuldige wijze gemonitord en geanalyseerd.
           </p>
           <p style="color: black;">
-            Wij gaan zorgvuldig om met uw data. Conform de Algemene Verordening Gegevensbescherming (AVG) heeft u te allen tijde het recht om inzicht te krijgen in uw opgeslagen gegevens of een verzoek tot volledige verwijdering van uw data in te dienen.
+            De beheerder gaat zorgvuldig om met uw gegevens. In lijn met de Algemene Verordening Gegevensbescherming (AVG) heeft u altijd het recht om uw opgeslagen data in te zien of te vragen om deze volledig te laten verwijderen.
           </p>
           <p style="color: black;">
-            Voor vragen over uw privacy of een verzoek tot gegevensverwijdering, kunt u contact opnemen via: <a href="mailto:joostkkoch@gmail.com">joostkkoch@gmail.com</a>.
+            Mocht u informatie op deze website tegenkomen die u liever verwijderd ziet of die inbreuk maakt op uw rechten, dan kunt u dit laten weten via <a href="mailto:joostkkoch@gmail.com">joostkkoch@gmail.com</a>. Er wordt dan zo snel mogelijk naar een passende oplossing gekeken.
           </p>
           <button id="close-terms-btn" style="margin-top: 15px; padding: 8px 16px; cursor: pointer;">Sluiten</button>
         </div>

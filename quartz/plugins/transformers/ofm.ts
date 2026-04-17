@@ -161,7 +161,12 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
     textTransform(_ctx, src) {
       // do comments at text level
       if (opts.comments) {
-        src = src.replace(commentRegex, "")
+        if (src.includes("%%")) {
+          src = src.replace(/(?:^|\n)```[\s\S]*?(?:^|\n)```|`(?:[^`]|\\`)+`|%%[\s\S]*?%%/g, (match) => {
+            if (match.startsWith("%%")) return ""
+            return match
+          })
+        }
       }
 
       // pre-transform blockquotes
@@ -574,12 +579,23 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
             visit(tree, "code", (node: Code) => {
               if (node.lang === "mermaid") {
                 file.data.hasMermaidDiagram = true
+                
+                // Obsidian allows \n to be used in mermaid diagrams
+                // Replace \n with <br/> for compatibility with mermaid
+                // Also escape < and > to prevent mermaid from misinterpreting them as HTML tags
+                const value = node.value
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/\\n/g, "<br/>")
+
                 node.data = {
                   hProperties: {
                     className: ["mermaid"],
-                    "data-clipboard": JSON.stringify(node.value),
+                    "data-clipboard": JSON.stringify(value),
                   },
                 }
+                
+                node.value = value
               }
             })
           }

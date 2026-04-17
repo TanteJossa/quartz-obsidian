@@ -242,9 +242,20 @@ export function transformLink(src: FullSlug, target: string, opts: TransformOpti
         const parts = slug.split("/")
         const fileName = parts.at(-1)
         if (!fileName) return false
-        return (
-          targetCanonical === fileName || targetCanonical === fileName.replace(/\.[^/.]+$/, "")
-        )
+
+        // Match exact filename (with or without extension)
+        if (targetCanonical === fileName || targetCanonical === fileName.replace(/\.[^/.]+$/, "")) {
+          return true
+        }
+
+        // If target includes directories, match the end of the full slug
+        const targetIsExt = targetCanonical.includes(".")
+        if (targetIsExt) {
+          return slug === targetCanonical || slug.endsWith("/" + targetCanonical)
+        } else {
+          const slugWithoutExt = slug.replace(/\.[^/.]+$/, "")
+          return slugWithoutExt === targetCanonical || slugWithoutExt.endsWith("/" + targetCanonical)
+        }
       })
 
       // only match, just use it

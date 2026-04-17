@@ -193,7 +193,7 @@ document.addEventListener("nav", async () => {
 
   mermaidImport ||= await import(
     // @ts-ignore
-    "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.esm.min.mjs"
+    "https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.esm.min.mjs"
   )
   const mermaid = mermaidImport.default
 
